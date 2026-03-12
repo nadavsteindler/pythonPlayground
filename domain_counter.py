@@ -4,7 +4,8 @@
 # Output "100 apps.google.com,200 calendar.google.com,50 my.pony.com,300 google.com,50 pony.com,350 com"
 
 
-import sys
+import time
+from threading import Thread, Lock
 
 
 def calculate_count_domains(arg: str) -> str:
@@ -25,6 +26,34 @@ def calculate_count_domains(arg: str) -> str:
 
     return ",".join(f"{v} {k}" for k, v in counts.items())
 
+def calculate_count_domains_multithread(arg: str) -> str:
+    count_domains = arg.split(",")
+    counts = {}
+    lock = Lock()
+
+    def process_entry(count_domain: str):
+        time.sleep(3)
+        print("starting "+count_domain)
+        tokens = count_domain.split(" ")
+        count = int(tokens[0])
+        domain = tokens[1]
+        while True:
+            with lock:
+                counts[domain] = counts.get(domain, 0) + count
+            pos = domain.find(".")
+            if pos != -1:
+                domain = domain[pos+1:]
+            else:
+                break
+
+    threads = [Thread(target=process_entry, args=(cd,)) for cd in count_domains]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    return ",".join(f"{v} {k}" for k, v in counts.items())
 
 if __name__ == "__main__":
-    print(calculate_count_domains("100 apps.google.com,200 calendar.google.com,50 my.pony.com"))
+    # print(calculate_count_domains("100 apps.google.com,200 calendar.google.com,50 my.pony.com"))
+    print(calculate_count_domains_multithread("100 apps.google.com,200 calendar.google.com,50 my.pony.com"))
