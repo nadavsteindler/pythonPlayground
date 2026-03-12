@@ -31,22 +31,22 @@ def calculate_count_domains_multithread(arg: str) -> str:
     counts = {}
     lock = Lock()
 
-    def process_entry(count_domain: str):
-        time.sleep(3)
+    def process_count_domain(count_domain:str):
         print("starting "+count_domain)
+        time.sleep(3)
         tokens = count_domain.split(" ")
         count = int(tokens[0])
         domain = tokens[1]
         while True:
             with lock:
-                counts[domain] = counts.get(domain, 0) + count
+                counts[domain]=counts.get(domain, 0)+count
             pos = domain.find(".")
             if pos != -1:
-                domain = domain[pos+1:]
+                domain=domain[pos+1:]
             else:
                 break
 
-    threads = [Thread(target=process_entry, args=(cd,)) for cd in count_domains]
+    threads=[Thread(target=process_count_domain,args=(cd,)) for cd in count_domains]
     for t in threads:
         t.start()
     for t in threads:
